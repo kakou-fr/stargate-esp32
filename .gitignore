@@ -1,0 +1,10 @@
+.pio
+.pioenvs
+.piolibdeps
+.clang_complete
+.gcc-flags.json
+.tags
+.tags1
+.travis.yml
+.vscode
+src/secret.h
