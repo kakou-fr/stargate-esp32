@@ -6,6 +6,8 @@
 // Load Wi-Fi library
 #include <WiFi.h>
 #include "settings.h"
+#include "secret.h"
+
 #include <ArduinoOTA.h>
 #include <NTPClient.h>
 #include <WiFiUdp.h>
