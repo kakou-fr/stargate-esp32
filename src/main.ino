@@ -1,8 +1,4 @@
-/*********
-   Rui Santos
-   Complete project details at http://randomnerdtutorials.com
-*********/
-
+#include <HardwareSerial.h>
 // Load Wi-Fi library
 #include <WiFi.h>
 #include "settings.h"
@@ -15,7 +11,7 @@
 #include <SPIFFS.h>
 
 #include <DFRobotDFPlayerMini.h>
-#include <SoftwareSerial.h>
+//#include <SoftwareSerial.h>
 
 #include <FastLED.h>
 
@@ -24,7 +20,8 @@
 #define NUM_LEDS_RAMPS 8
 
 //MP3
-SoftwareSerial mp3(MP3_RX, MP3_TX, false); //, 256);
+HardwareSerial mp3(1);//;MP3_RX, MP3_TX, false); //, 256);
+
 DFRobotDFPlayerMini myDFPlayer;
 
 
@@ -93,7 +90,7 @@ int Chevron_Locked = Chevrons[8];
 int Cal = 3;
 
 //The calibration point is set 3% higher than the average. Adjust this number if you experience problems with calibration.
-int Calibration_Percent = 3;
+int Calibration_Percent = 200;
 
 //How long should the locked chevron be lit before continuing dialling. Default is 1500 (1.5 seconds).
 int ChevronLocked = 500;
@@ -139,7 +136,6 @@ float Step_increment = 0;
 
 void setup() {
         Serial.begin(115200);
-        mp3.begin(115200);
         SPIFFS.begin();
         setupPinModes();
         ChevronstopRoll();
@@ -198,6 +194,9 @@ void setup() {
 
 /********STARGATE************/
         pinMode(Calibrate_LED, OUTPUT);
+        digitalWrite(Calibrate_LED, HIGH);
+        FastLED.delay(1000);
+        digitalWrite(Calibrate_LED, LOW);
         pinMode(LDR,INPUT);
         if (Ring_Display > 0) {
                 Cal = 3;
@@ -211,11 +210,13 @@ void setup() {
         }
 /********STARGATE************/
 /*******   MP3   ************/
+        myDFPlayer.setTimeOut ( 1000 ) ;
+        mp3.begin(9600, SERIAL_8N1, MP3_RX, MP3_TX);
         Serial.println();
         Serial.println(F("DFRobot DFPlayer Mini Demo"));
         Serial.println(F("Initializing DFPlayer ... (May take 3~5 seconds)"));
-
-        if (!myDFPlayer.begin(mp3, true, false)) { //Use softwareSerial to communicate with mp3.
+        if (!myDFPlayer.begin(mp3, false /*, true, true */)) { //Use softwareSerial to communicate with mp3.
+                Serial.println(myDFPlayer.readType(),HEX);
                 Serial.println(F("Unable to begin:"));
                 Serial.println(F("1.Please recheck the connection!"));
                 Serial.println(F("2.Please insert the SD card!"));
@@ -224,9 +225,11 @@ void setup() {
                 }
         }
         Serial.println(F("DFPlayer Mini online."));
+        myDFPlayer.outputDevice(DFPLAYER_DEVICE_SD);
+        myDFPlayer.enableDAC();
+        myDFPlayer.volume(20); //Set volume value. From 0 to 30
+        //myDFPlayer.play(1); //Play the first mp3
 
-        myDFPlayer.volume(10); //Set volume value. From 0 to 30
-        myDFPlayer.play(1); //Play the first mp3
 /*******   MP3   ************/
 
 }
@@ -302,6 +305,10 @@ void playSound(int x) {
     if (x != 0 && myDFPlayer.available()) {
       myDFPlayer.play(13); // DHD red button's LEDs activate
     }
+  }  else if (x == 14) {
+    if (x != 0 && myDFPlayer.available()) {
+      myDFPlayer.play(14); // stargate generic
+    }
   }
 }
 
@@ -319,11 +326,15 @@ void loop(){
                 if (Cal < 3) {
                         calibrate();
                 }else if (Dialling <= Address_Length) {
-                        dial(Address[Dialling++]);
+                        if(Dialling == 1){
+                                playSound(1);
+                        }
+                        dial(Dialling);
                         if (Dialling == Address_Length) {
                                 GaterollFORWARD(Chevron_Step);
                                 ChevronstopRoll();
                                 Serial.println("Wormhole Established");
+                                playSound(3);
                                 for (int tmp_chevron1 = 0; tmp_chevron1 < 9; tmp_chevron1++) {
                                         ledChevron(Chevrons[tmp_chevron1], HIGH);
                                 }
@@ -334,11 +345,15 @@ void loop(){
                                 }
                                 ledRamp(LOW);
                                 Serial.println("Wormhole Disengaged");
+                                playSound(4);
+                                FastLED.delay(5);
+                                playSound(14);
                                 /********/
                                 dialing=0;
                                 Dialling=0;
                                 /******/
                         }
+                        Dialling++;
                         if(Dialling>11) {
                                 /********/
                                 dialing=0;
@@ -685,6 +700,7 @@ void dial(int Chevron) {
         Serial.print(Chevron);
         Serial.println(" Encoded");
         int Steps_Turn = 0;
+        playSound(5+(Chevron%8));
         if (Chevron == 1) {
                 Steps_Turn = round(Step_Per_Symbol * (Address[(Chevron - 1)] - 1));
                 GaterollBACKWARD(Steps_Turn);
@@ -724,6 +740,7 @@ void dial(int Chevron) {
                 Serial.print("Chevron ");
                 Serial.print(Chevron);
                 Serial.println(" Locked");
+                playSound(2);
                 ledChevron(Chevron_Locked, HIGH);
                 ChevronrollBACKWARD(Chevron_Step);
                 ChevronstopRoll();
@@ -851,6 +868,7 @@ void calibrate() {
                 GaterollFORWARD(CAL_STEP1);
                 GatestopRoll();
                 int tmp_cal = analogRead(LDR);
+                Serial.println(tmp_cal);
                 if(tmp_cal > LDR_cal) {
                         Serial.print("LDR Calibrated : ");
                         Serial.println(tmp_cal);

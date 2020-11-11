@@ -1,8 +1,8 @@
 // define variables
 
 //MINI MP3 PLAYER
-int MP3_RX = 4;
-int MP3_TX = 15;
+int8_t MP3_RX = 15; //4;
+int8_t MP3_TX = 4; //15;
 
 /*
 //LedStrip
@@ -51,3 +51,18 @@ String ipStr = "";
 String respMsg = "";
 String formattedTime = "";
 bool noInit = true;
+
+// 1  Gate start and turn
+// 2  Chevron Lock
+// 3  Wormhole Activate
+// 4  Wormhole De-activate
+// 5  Event Horizon (puddle sfx)
+// 6  DHD 1st Address
+// 7  DHD 2nd Address
+// 8  DHD 3rd Address
+// 9  DHD 4th Address
+// 10  DHD 5th Address
+// 11  DHD 6th Address
+// 12  DHD 7th Address
+// 13  DHD red button's LEDs activate
+// 14  stargate generic
