@@ -30,8 +30,8 @@ int GateMicroStep2Pin = 19; // Stepper MS2
 int GateMicroStep3Pin = 18; // Stepper MS3
 
 // stepper Chevron
-int ChevronDirPin = 34;       // Direction GPIO
-int ChevronStepPin = 35;      // Step GPIO
+int ChevronDirPin = 22;       // Direction GPIO
+int ChevronStepPin = 27;      // Step GPIO
 int ChevronEnablePin = 26;     // Stepper enable pin
 int ChevronMicroStep1Pin = 25; //33; // Stepper MS1
 int ChevronMicroStep2Pin = 33; //25; // Stepper MS2
@@ -40,12 +40,13 @@ int ChevronMicroStep3Pin = 32; //26; // Stepper MS3
 //speed
 int motorSpeed = 200;      // Set step delay for motor in microseconds (smaller is faster)
 int currPos = 0;
+int currPosChevron = 0;
 int oneRotation = 3200; // 200 x 1.8 degrees per step = 360
 
 int maxSteps = 2300;   // maximum steps
 
 int value = 0;
-bool debugPrint = false;
+bool debugPrint = true;
 
 String ipStr = "";
 String respMsg = "";
